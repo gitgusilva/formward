@@ -12,8 +12,8 @@ export const formatFileSize = (size) => {
 };
 
 /**
- * Checks if Formward (or legacy global for compatibility) is defined globally.
+ * Checks if Formward is defined globally.
  */
 export const isDefinedGlobally = () => {
-  return typeof Formward !== 'undefined' || typeof VeeValidate !== 'undefined';
+  return typeof Formward !== 'undefined';
 };

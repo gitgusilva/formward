@@ -23,6 +23,7 @@ Optional for schema support: `npm install zod` and/or `yup`.
 ```js
 import { createApp } from 'vue'
 import Formward from 'formward'
+import App from './App.vue'
 
 const app = createApp(App)
 app.use(Formward, { locale: 'en', inject: true })
@@ -36,20 +37,20 @@ app.mount('#app')
 
 ## Documentation
 
-Documentação em arquivos separados em [`docs/`](docs/):
+Documentation is split into separate files in [`docs/`](docs/):
 
-| Link | Conteúdo |
-|------|----------|
-| [About](docs/about.md) | Sobre o projeto e o fork de vee-validate |
-| [Features](docs/features.md) | Funcionalidades |
-| [Installation](docs/installation.md) | Instalação |
-| [Quick start](docs/quick-start.md) | Início rápido (API clássica) |
-| [Schema support](docs/schema-support.md) | Schemas com Zod / Yup (SchemaProvider, installSchema) |
-| [API overview](docs/api-overview.md) | Visão geral da API |
-| [Compatibility](docs/compatibility.md) | Compatibilidade com vee-validate 2 |
-| [Migration](docs/migration.md) | Migração a partir de vee-validate |
-| [License](docs/license.md) | Licença |
+| Link | Content |
+|------|---------|
+| [About](docs/about.md) | About the project and the fork |
+| [Features](docs/features.md) | Features |
+| [Installation](docs/installation.md) | Installation |
+| [Quick start](docs/quick-start.md) | Quick start (classic API) |
+| [Schema support](docs/schema-support.md) | Schema support (Zod / Yup, SchemaProvider, installSchema) |
+| [API overview](docs/api-overview.md) | API overview |
+| [Compatibility](docs/compatibility.md) | Compatibility with vee-validate 2 |
+| [Migration](docs/migration.md) | Migration from vee-validate |
+| [License](docs/license.md) | License |
 
 ## License
 
-MIT. Ver [docs/license.md](docs/license.md).
+MIT. See [docs/license.md](docs/license.md).

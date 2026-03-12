@@ -49,7 +49,7 @@ const locale = {
 };
 
 if (isDefinedGlobally()) {
-  (typeof Formward !== "undefined" ? Formward : VeeValidate).Validator.localize({ [locale.name]: locale });
+  Formward.Validator.localize({ [locale.name]: locale });
 }
 
 export default locale;

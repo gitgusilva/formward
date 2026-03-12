@@ -5,8 +5,8 @@ about: Create a report to help us improve.
 
 **Versions**
 
-- vee-validate: 2.#.#
-- vue: 2.#.#
+- formward: (e.g. 2.x)
+- vue: 3.#.#
 
 **Describe the bug**
 A clear and concise description of what the bug is.

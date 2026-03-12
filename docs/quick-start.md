@@ -1,6 +1,6 @@
 # Quick start (classic API)
 
-Same as vee-validate 2: install the plugin and use the directive and `$validator`.
+Install the Formward plugin and use the `v-validate` directive and `$validator` on your components.
 
 ```js
 import { createApp } from 'vue'
@@ -22,8 +22,9 @@ app.mount('#app')
 </template>
 
 <script setup>
-// With inject: true (default), components receive $validator and errors via the mixin.
+// With inject: true (default), the mixin provides $validator and errors.
+// In Composition API: inject('formward-validator') and validator.errors.
 </script>
 ```
 
-Using the mixin (with `inject: true`), child components get `this.$validator` and `this.errors` and can call `this.$validator.validateAll()` etc.
+With the mixin (when `inject: true`), components get `this.$validator` and `this.errors` (or `inject('formward-validator')` and `validator.errors` in Composition API), and can call `this.$validator.validateAll()` etc.

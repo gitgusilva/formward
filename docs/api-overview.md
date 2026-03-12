@@ -7,4 +7,4 @@
 | `ValidationProvider` / `ValidationObserver` | Scoped validation components |
 | `formward/schema` | `toZodRule`, `toYupRule`, `toYupRuleAsync`, `installSchema`, `SchemaProvider` |
 
-Configuration (same as vee-validate 2): `locale`, `delay`, `events`, `errorBagName`, `fieldsBagName`, `inject`, `mode`, etc.
+Configuration: `locale`, `delay`, `events`, `errorBagName`, `fieldsBagName`, `inject`, `mode`, and more.

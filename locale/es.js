@@ -50,7 +50,7 @@ const locale = {
 
 if (isDefinedGlobally()) {
   // eslint-disable-next-line
-  (typeof Formward !== "undefined" ? Formward : VeeValidate).Validator.localize({ [locale.name]: locale });
+  Formward.Validator.localize({ [locale.name]: locale });
 }
 
 export default locale;
