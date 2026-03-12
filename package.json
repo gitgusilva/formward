@@ -1,0 +1,119 @@
+{
+  "name": "formward",
+  "version": "2.3.0",
+  "description": "Vue 3 form validation — form guard with directive, schemas (Zod, Yup). Fork of vee-validate 2.x.",
+  "author": "Abdelrahman Awad <logaretm1@gmail.com>",
+  "license": "MIT",
+  "module": "dist/formward.esm.js",
+  "main": "dist/formward.js",
+  "unpkg": "dist/formward.js",
+  "typings": "types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/formward.esm.js",
+      "require": "./dist/formward.js",
+      "types": "./types/index.d.ts"
+    },
+    "./schema": {
+      "import": "./dist/schema.esm.js",
+      "require": "./dist/schema.esm.js",
+      "types": "./types/schema.d.ts"
+    }
+  },
+  "homepage": "https://github.com/gitgusilva/formward#readme",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:gitgusilva/formward.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gitgusilva/formward/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src tests --fix",
+    "typecheck": "tsc --noEmit",
+    "build:umd": "cross-env VITE_BUILD_TARGET=umd vite build && cross-env VITE_BUILD_TARGET=umd-minimal vite build",
+    "build:esm": "cross-env VITE_BUILD_TARGET=esm vite build && cross-env VITE_BUILD_TARGET=esm-minimal vite build && cross-env VITE_BUILD_TARGET=esm-rules vite build && cross-env VITE_BUILD_TARGET=esm-schema vite build",
+    "build": "npm run build:umd && npm run build:esm",
+    "cover": "vitest run --coverage"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "validation",
+    "validator",
+    "form",
+    "zod",
+    "yup",
+    "schema",
+    "directive",
+    "provider"
+  ],
+  "files": [
+    "dist/*.js",
+    "dist/locale/*.js",
+    "types/*.d.ts"
+  ],
+  "peerDependencies": {
+    "vue": "^3.0.0",
+    "zod": ">=3.0.0",
+    "yup": ">=0.32.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": { "optional": true },
+    "yup": { "optional": true }
+  },
+  "devDependencies": {
+    "zod": "^3.23.0",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vitest/coverage-v8": "^2.1.0",
+    "@vue/test-utils": "^2.4.6",
+    "chalk": "^2.4.2",
+    "cross-env": "^5.2.0",
+    "date-fns": "2.0.0-alpha.25",
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-vitest": "^0.4.0",
+    "filesize": "^4.1.2",
+    "flush-promises": "^1.0.2",
+    "gzip-size": "^5.1.1",
+    "husky": "^3.0.2",
+    "jsdom": "^25.0.0",
+    "lint-staged": "^9.2.1",
+    "mkdirp": "^0.5.1",
+    "polish-plurals": "^1.1.0",
+    "rollup": "^4.59.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "uglify-js": "^3.5.15",
+    "validator": "^10.8.0",
+    "vite": "^5.4.21",
+    "vite-plugin-flow": "^0.2.1",
+    "vitest": "^2.1.0",
+    "vue": "^3.4.0",
+    "vue-i18n": "^9.0.0"
+  },
+  "eslintIgnore": [
+    "locale",
+    "dist"
+  ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts,vue}": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "dependencies": {
+    "mitt": "^3.0.0"
+  }
+}

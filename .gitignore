@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+
+# Build & dist
+dist/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Logs & debug
+*.log
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Archives
+*.zip
+*.tgz
+*.tar.gz
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE & editors
+.idea/
+.vscode/
+.vs/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# Cache & temp
+.cache/
+.temp/
+.tmp/
+*.tmp
+
+# Agents & AI
+.agents/
+.cursor/
+*.cursorignore
+
+# Test / tooling
+.parcel-cache/
+.rollup.cache/
+.eslintcache
