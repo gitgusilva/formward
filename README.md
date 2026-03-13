@@ -7,9 +7,6 @@ Drop-in compatible API with **vee-validate 2.x** so existing projects keep worki
 [![npm downloads](https://img.shields.io/npm/dm/formward.svg)](https://www.npmjs.com/package/formward)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-- **npm:** [formward](https://www.npmjs.com/package/formward)
-- **GitHub:** [gitgusilva/formward](https://github.com/gitgusilva/formward)
-
 ## Install
 
 ```bash
