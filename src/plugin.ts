@@ -32,6 +32,8 @@ class Formward {
   static ValidationProvider: any;
   static ValidationObserver: any;
   static withValidation: any;
+  static useStepValidation: any;
+  static useStepValidationWithValidator: any;
   static Rules: any;
   static mixin: any;
   static directive: any;
@@ -231,7 +233,7 @@ function install (_app: any, opts?: Record<string, unknown>) {
 
   app = _app;
   pluginInstance = new Formward(opts);
-  Validator.$formule = pluginInstance;
+  Validator.$formward = pluginInstance;
 
   _app.provide('formward-validator', pluginInstance._validator);
   detectPassiveSupport();

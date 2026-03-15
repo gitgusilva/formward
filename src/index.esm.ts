@@ -11,6 +11,7 @@ import Validator from './core/validator';
 import ErrorBag from './core/errorBag';
 import { assign } from './utils';
 import { ValidationProvider, ValidationObserver, withValidation } from './components';
+import { useStepValidation, useStepValidationWithValidator } from './composables/useStepValidation';
 
 const version = '__VERSION__';
 
@@ -37,7 +38,9 @@ export {
   version,
   ValidationProvider,
   ValidationObserver,
-  withValidation
+  withValidation,
+  useStepValidation,
+  useStepValidationWithValidator
 };
 
 Formward.version = version;
@@ -45,6 +48,8 @@ Formward.mapFields = mapFields;
 Formward.ValidationProvider = ValidationProvider;
 Formward.ValidationObserver = ValidationObserver;
 Formward.withValidation = withValidation;
+Formward.useStepValidation = useStepValidation;
+Formward.useStepValidationWithValidator = useStepValidationWithValidator;
 
 const plugin = {
   install: installPlugin,

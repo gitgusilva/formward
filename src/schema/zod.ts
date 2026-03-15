@@ -12,7 +12,8 @@
  */
 import type { FormwardRuleLike } from './types';
 
-type ZodSchema = {
+/** Type accepted by toZodRule (Zod-like schema with safeParse). */
+export type ZodSchemaLike = {
   safeParse: (value: unknown) => { success: true; data: unknown } | { success: false; error: { message: string; errors?: unknown[] } };
 };
 
@@ -24,7 +25,7 @@ type ZodSchema = {
  * @returns Rule object for Validator.extend(ruleName, rule).
  */
 export function toZodRule (
-  schema: ZodSchema,
+  schema: ZodSchemaLike,
   options?: { message?: string }
 ): FormwardRuleLike {
   const fallbackMessage = options?.message ?? 'Validation failed';

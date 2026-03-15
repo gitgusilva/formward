@@ -65,9 +65,9 @@ export function toYupRuleAsync (
   const fallbackMessage = options?.message ?? 'Validation failed';
 
   return {
-    validate (value: unknown): Promise<boolean | { valid: boolean; data: Record<string, unknown> }> {
+    validate (value: unknown) {
       return schema.validate(value).then(
-        () => true,
+        () => true as const,
         (err: unknown) => {
           const message = err && typeof (err as Error).message === 'string'
             ? (err as Error).message
@@ -79,5 +79,5 @@ export function toYupRuleAsync (
     getMessage (_field: string, _params: unknown[], data: Record<string, unknown>): string {
       return (data?.message as string) ?? fallbackMessage;
     }
-  };
+  } as FormwardRuleLike;
 }

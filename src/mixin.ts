@@ -47,19 +47,19 @@ export default {
   },
   beforeCreate () {
     // if built in do nothing.
-    if (isBuiltInComponent(this) || this.$options.$__formuleInject === false) {
+    if (isBuiltInComponent(this) || this.$options.$__formwardInject === false) {
       return;
     }
 
     // if its a root instance set the config if it exists.
     if (!this.$parent) {
-      setConfig(this.$options.$_formule || {});
+      setConfig(this.$options.$_formward || {});
     }
 
     const options = resolveConfig(this);
 
     // if its a root instance, inject anyways, or if it requested a new instance.
-    if (!this.$parent || (this.$options.$_formule && /new/.test(this.$options.$_formule.validator))) {
+    if (!this.$parent || (this.$options.$_formward && /new/.test(this.$options.$_formward.validator))) {
       this.$validator = new Validator(getValidator(), this);
     }
 

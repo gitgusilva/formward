@@ -8,3 +8,4 @@
 - **Schema support** (optional): Zod and Yup object schemas as Formward rules
 - **SchemaProvider**: wrap a form, pass a schema, use `v-validate="'schema:fieldName'"` on inputs
 - **installSchema()**: programmatic registration of a schema and cleanup on unmount
+- **Wizard**: composables for multi-step forms; block "Next" until current step is valid (see [Examples](examples.md))
