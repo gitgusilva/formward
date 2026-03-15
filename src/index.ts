@@ -2,6 +2,7 @@ import * as Rules from './rules';
 import Formward from './plugin';
 import mapFields from './core/mapFields';
 import { ValidationProvider, ValidationObserver, withValidation } from './components';
+import { useStepValidation, useStepValidationWithValidator } from './composables/useStepValidation';
 import { assign } from './utils';
 import en from '../locale/en';
 
@@ -16,5 +17,8 @@ Formward.mapFields = mapFields;
 Formward.ValidationProvider = ValidationProvider;
 Formward.ValidationObserver = ValidationObserver;
 Formward.withValidation = withValidation;
+Formward.useStepValidation = useStepValidation;
+Formward.useStepValidationWithValidator = useStepValidationWithValidator;
 
+export { useStepValidation, useStepValidationWithValidator };
 export default Formward;

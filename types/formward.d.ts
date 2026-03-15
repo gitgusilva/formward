@@ -629,6 +629,40 @@ type ComponentLike = Component | { options: any };
 
 export function withValidation (component: ComponentLike, mapProps?: ValidationContextMapper): Component;
 
+export interface StepObserverLike {
+  validate(opts?: { silent?: boolean }): Promise<boolean>;
+}
+
+export function useStepValidation(
+  stepObserverRef: import('vue').Ref<StepObserverLike | null | undefined>
+): {
+  validateStep: (options?: { silent?: boolean }) => Promise<boolean>;
+  isValidationPending: import('vue').Ref<boolean>;
+  lastStepValid: import('vue').Ref<boolean | null>;
+  canAdvance: import('vue').ComputedRef<boolean>;
+  resetState: () => void;
+};
+
+export interface StepValidatorLike {
+  validateAll(scopeOrValues?: string | Record<string, unknown>, opts?: { silent?: boolean }): Promise<boolean>;
+}
+
+export interface UseStepValidationWithValidatorOptions {
+  validator: StepValidatorLike | null | undefined;
+  currentStep: import('vue').Ref<number>;
+  scopeByStep: Record<number, string>;
+}
+
+export function useStepValidationWithValidator(
+  options: UseStepValidationWithValidatorOptions
+): {
+  validateStep: (options?: { silent?: boolean }) => Promise<boolean>;
+  isValidationPending: import('vue').Ref<boolean>;
+  lastStepValid: import('vue').Ref<boolean | null>;
+  canAdvance: import('vue').ComputedRef<boolean>;
+  resetState: () => void;
+};
+
 export const version: string;
 
 export const install: Vue.PluginFunction<Configuration>
@@ -656,6 +690,8 @@ export default class Formward {
     static setMode(mode: string, implementation: Function): void;
     static use<T>(plugin: (ctx: PluginContext, options?: T) => any, options?: T): void;
     static withValidation(component: Vue, mapFn: (ctx: ValidationSlotScopeData) => object): Vue
+    static useStepValidation: typeof useStepValidation;
+    static useStepValidationWithValidator: typeof useStepValidationWithValidator;
     /**
      * `mapFields` helper, which is similar to Vuex's `mapGetters` and `mapActions`
      * as it maps a field object to a computed property.

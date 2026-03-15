@@ -5,6 +5,7 @@
  * Used by SchemaProvider or called manually for programmatic setup.
  */
 import { toZodRule } from './zod';
+import type { ZodSchemaLike } from './zod';
 import { toYupRule, toYupRuleAsync } from './yup';
 import type { FormwardRuleLike } from './types';
 
@@ -13,7 +14,7 @@ type ValidatorInstance = {
   constructor: { remove: (name: string) => void };
 };
 
-function isZodObject (schema: unknown): schema is { shape: Record<string, { safeParse: (v: unknown) => unknown }> } {
+function isZodObject (schema: unknown): schema is { shape: Record<string, ZodSchemaLike> } {
   return !!(
     schema &&
     typeof schema === 'object' &&
@@ -55,7 +56,7 @@ export function installSchema (
   const ValidatorClass = validator.constructor as { remove: (name: string) => void };
 
   if (isZodObject(schema)) {
-    const shape = schema.shape as Record<string, { safeParse: (v: unknown) => unknown }>;
+    const shape = schema.shape;
     for (const key of Object.keys(shape)) {
       const ruleName = `${prefix}:${key}`;
       validator.extend(ruleName, toZodRule(shape[key]));

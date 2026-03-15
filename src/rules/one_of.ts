@@ -1,10 +1,13 @@
-import { toArray } from '../utils';
-
 /**
  * Validates that the value is one of the allowed values (with paramNames for message interpolation).
  */
+function normalizeOptions (options: unknown[] | Record<string, unknown>): unknown[] {
+  if (Array.isArray(options)) return options;
+  return Object.values(options as Record<string, unknown>);
+}
+
 const validate = (value: unknown, options: unknown[] | Record<string, unknown> = []) => {
-  const list = toArray(options);
+  const list = normalizeOptions(options);
   if (!list.length) {
     return false;
   }
