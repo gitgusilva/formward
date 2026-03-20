@@ -141,7 +141,7 @@ export default class Resolver {
    */
   static resolveInitialValue (vnode) {
     if (!vnode) return undefined;
-    const data = vnode.props || vnode.data || {};
+    const data = vnode.props || {};
     const model = data.model || find(data.directives || [], d => d.name === 'model');
     if (model && model.value !== undefined) return model.value;
     if (data.modelValue !== undefined) return data.modelValue;
@@ -254,7 +254,7 @@ export default class Resolver {
 
     const ctx = context || getContextFromVnode(vnode);
     const watchable = ctx && !/[^\w.$]/.test(model.expression) && hasPath(model.expression, ctx);
-    const lazy = !!(model.modifiers && model.modifiers.lazy);
+    const lazy = !!((model as any)?.modifiers?.lazy);
 
     if (!watchable) {
       return { expression: null, lazy };

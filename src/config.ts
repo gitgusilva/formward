@@ -49,7 +49,7 @@ const DEFAULT_CONFIG: Config = {
   fieldsBagName: 'fields',
   classes: false,
   classNames: null,
-  events: 'input|blur',
+  events: 'input',
   inject: true,
   fastExit: true,
   aria: true,

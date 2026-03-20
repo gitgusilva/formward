@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-03-20
+
+### Fixed
+
+- **ValidationProvider**: revalidation after value changes (including DOM sync / `updated` catch-up); `shouldValidate` when errors persist with model in sync; `applyResult` skips identical payloads to avoid update loops; unmount guards for timers and `$watch` deps.
+- **ValidationObserver**: `validate()` waits for `$nextTick` before reading providers; empty `refs` returns `false` instead of vacuous `true`.
+- **useStepValidation**: `await nextTick()` (and retry) so `stepObserverRef` is set after step transitions (e.g. wizard Back).
+
 ## [1.1.0] - 2025-03-13
 
 ### Added
@@ -23,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Schema `installSchema` and Yup adapter types for TypeScript.
 
+[1.1.1]: https://github.com/gitgusilva/formward/releases/tag/v1.1.1
 [1.1.0]: https://github.com/gitgusilva/formward/releases/tag/v1.1.0
 
 ## [1.0.0] - (existing release)

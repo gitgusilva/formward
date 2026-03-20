@@ -1,4 +1,4 @@
-import { getCurrentInstance } from 'vue';
+import { getCurrentInstance, h } from 'vue';
 import { isCallable, values, findIndex, warn, assign } from '../utils';
 import { createRenderless } from '../utils/vnode';
 
@@ -56,10 +56,13 @@ export const ValidationObserver = {
     vid: `obs_${OBSERVER_COUNTER++}`,
     refs: {},
     observers: [],
-    persistedStore: {}
+    persistedStore: {},
+    /** Bumped by providers so merged `ctx` updates when child state is not a Vue dependency of the observer. */
+    _ctxVersion: 0
   }),
   computed: {
     ctx () {
+      this._ctxVersion;
       const ctx = {
         errors: {},
         validate: (arg) => {
@@ -80,7 +83,7 @@ export const ValidationObserver = {
         reset: () => this.reset()
       };
 
-      return [
+      const items = [
         ...values(this.refs),
         ...Object.keys(this.persistedStore).map(key => {
           return {
@@ -90,7 +93,9 @@ export const ValidationObserver = {
           };
         }),
         ...this.observers,
-      ].reduce((acc, provider) => {
+      ];
+
+      const result = items.reduce((acc, provider) => {
         Object.keys(flagMergingStrategy).forEach(flag => {
           const flags = provider.flags || provider.ctx;
           if (!(flag in acc)) {
@@ -107,6 +112,13 @@ export const ValidationObserver = {
 
         return acc;
       }, ctx);
+
+      if (items.length === 0) {
+        result.invalid = true;
+        result.valid = false;
+      }
+
+      return result;
     }
   },
   created () {
@@ -129,16 +141,17 @@ export const ValidationObserver = {
       this.$_formwardObserver.unsubscribe(this, 'observer');
     }
   },
-  render (h) {
-    let slots = this.$slots.default || (this.$scopedSlots && this.$scopedSlots.default) || [];
-    if (isCallable(slots)) {
-      slots = slots(this.ctx);
-    }
-    // Vue 3: $listeners merged into $attrs
+  render () {
+    const defaultSlot = this.$slots.default || [];
+    const slots = isCallable(defaultSlot) ? defaultSlot(this.ctx) : defaultSlot;
     const attrs = this.$attrs || {};
     return this.slim ? createRenderless(h, slots) : h(this.tag, attrs, slots);
   },
   methods: {
+    /** @see _ctxVersion */
+    notifyUpdate () {
+      this._ctxVersion++;
+    },
     subscribe (subscriber, kind = 'provider') {
       if (kind === 'observer') {
         this.observers.push(subscriber);
@@ -150,37 +163,45 @@ export const ValidationObserver = {
         this.restoreProviderState(subscriber);
       }
     },
-    unsubscribe ({ vid }, kind = 'provider') {
-      if (kind === 'provider') {
+    unsubscribe (subscriber, kind = 'provider') {
+      const vid = subscriber?.vid;
+      if (kind === 'provider' && vid !== undefined) {
         this.removeProvider(vid);
       }
 
-      const idx = findIndex(this.observers, o => o.vid === vid);
-      if (idx !== -1) {
-        this.observers.splice(idx, 1);
+      if (vid !== undefined) {
+        const idx = findIndex(this.observers, o => o.vid === vid);
+        if (idx !== -1) {
+          this.observers.splice(idx, 1);
+        }
       }
     },
     validate ({ silent } = { silent: false }) {
-      return Promise.all([
-        ...values(this.refs).map(ref => ref[silent ? 'validateSilent' : 'validate']().then(r => r.valid)),
-        ...this.observers.map(obs => obs.validate({ silent }))
-      ]).then(results => results.every(r => r));
+      return this.$nextTick().then(() => {
+        const promises = [
+          ...values(this.refs).map(ref => ref[silent ? 'validateSilent' : 'validate']().then(r => r.valid)),
+          ...this.observers.map(obs => obs.validate({ silent }))
+        ];
+        if (promises.length === 0) {
+          return false;
+        }
+        return Promise.all(promises).then(results => results.every(r => r));
+      });
     },
     reset () {
-      Object.keys(this.persistedStore).forEach((key) => {
-        delete this.persistedStore[key];
-      });
+      this.persistedStore = {};
       return [...values(this.refs), ...this.observers].forEach(ref => ref.reset());
     },
     restoreProviderState (provider) {
       const state = this.persistedStore[provider.vid];
       provider.setFlags(state.flags);
       provider.applyResult(state);
-      delete this.persistedStore[provider.vid];
+      const next = assign({}, this.persistedStore);
+      delete next[provider.vid];
+      this.persistedStore = next;
     },
     removeProvider (vid) {
       const provider = this.refs[vid];
-      // save it for the next time.
       if (provider && provider.persist) {
         /* istanbul ignore else */
         if (process.env.NODE_ENV !== 'production') {
@@ -198,7 +219,9 @@ export const ValidationObserver = {
         });
       }
 
-      delete this.refs[vid];
+      const refs = assign({}, this.refs);
+      delete refs[vid];
+      this.refs = refs;
     },
   }
 };
