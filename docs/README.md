@@ -11,7 +11,7 @@ Documentation for **Formward** (Vue 3 form validation, fork of vee-validate 2.x)
 | [features.md](features.md) | Features |
 | [installation.md](installation.md) | Installation |
 | [quick-start.md](quick-start.md) | Quick start (classic API) |
-| [examples.md](examples.md) | Examples index ([examples/](examples/)) |
+| [examples.md](examples.md) | Examples index and links to [examples/](examples/) |
 | [schema-support.md](schema-support.md) | Schema support (Zod / Yup) |
 | [api-overview.md](api-overview.md) | API overview |
 | [compatibility.md](compatibility.md) | Compatibility with vee-validate 2 |

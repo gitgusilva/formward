@@ -456,8 +456,13 @@ export const isBuiltInComponent = (vnodeOrVm: Object): boolean => {
 
   // Vue 3: receive component instance (vm)
   const vm = vnodeOrVm as any;
-  const name = vm.$options?.name || vm.type?.__name || vm.type?.name;
-  return name ? /^(keep-alive|transition|transition-group)$/i.test(String(name)) : false;
+  const name = vm.$options && vm.$options.name;
+  if (name) {
+    return /^(keep-alive|transition|transition-group)$/.test(name);
+  }
+
+  const tag = vm.componentOptions && vm.componentOptions.tag;
+  return tag ? /^(keep-alive|transition|transition-group)$/.test(tag) : false;
 };
 
 export const makeDelayObject = (events: string[], delay: Object | number, delayConfig: Object | number) => {

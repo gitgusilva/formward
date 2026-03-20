@@ -49,9 +49,6 @@ Thumbs.db
 .cursor/
 *.cursorignore
 
-# Local demo app (not published with the package)
-test-app/
-
 # Test / tooling
 .parcel-cache/
 .rollup.cache/

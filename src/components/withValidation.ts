@@ -1,4 +1,3 @@
-import { h } from 'vue';
 import { ValidationProvider, createValidationCtx, createCommonHandlers, onRenderUpdate } from './provider';
 import { assign, isCallable } from '../utils';
 import { findModel, findModelConfig, mergeVNodeListeners, getInputEventName, normalizeSlots } from '../utils/vnode';
@@ -23,11 +22,11 @@ export function withValidation (component, ctxToProps = null) {
 
   const eventName = (options.model && options.model.event) || 'input';
 
-  hoc.render = function (this: any) {
+  hoc.render = function (this: any, h: any) {
     this.registerField();
     const vctx = createValidationCtx(this);
-    // Vue 3: internal vnode on component instance
-    const vnode = this.$.vnode || this._vnode;
+    const vnode = this.$.vnode || this._vnode || this.$vnode;
+    // Vue 3: $listeners merged into $attrs; pick on* for listeners
     const listeners = {};
     const attrs = this.$attrs || {};
     Object.keys(attrs).forEach(k => {

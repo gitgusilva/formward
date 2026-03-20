@@ -1,4 +1,4 @@
-import { ref, computed, nextTick, type Ref } from 'vue';
+import { ref, computed, type Ref } from 'vue';
 
 /**
  * Minimal validator interface for step validation by scope (directive API).
@@ -104,12 +104,7 @@ export function useStepValidation(
    * Use this in your "Next" / "Continue" handler and only advance when it returns true.
    */
   async function validateStep(options?: { silent?: boolean }): Promise<boolean> {
-    await nextTick();
-    let observer = stepObserverRef.value;
-    if (!observer) {
-      await nextTick();
-      observer = stepObserverRef.value;
-    }
+    const observer = stepObserverRef.value;
     if (!observer || typeof observer.validate !== 'function') {
       lastStepValid.value = false;
       return false;
