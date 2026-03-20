@@ -1,4 +1,4 @@
-import { getCurrentInstance } from 'vue';
+import { getCurrentInstance, h } from 'vue';
 import { getConfig } from '../config';
 import { getValidator } from '../state';
 import { modes } from '../modes';
@@ -12,6 +12,16 @@ let $validator = null;
 
 let PROVIDER_COUNTER = 0;
 
+function findObserverInAncestors () {
+  let instance = getCurrentInstance();
+  while (instance) {
+    const proxy = instance.proxy;
+    if (proxy && proxy.$_formwardObserver) return proxy.$_formwardObserver;
+    instance = instance.parent;
+  }
+  return null;
+}
+
 function getParentObserver () {
   const instance = getCurrentInstance();
   return instance && instance.parent ? instance.parent.proxy : null;
@@ -23,6 +33,8 @@ export const ValidationProvider = {
     $_formwardObserver: {
       from: '$_formwardObserver',
       default () {
+        const observer = findObserverInAncestors();
+        if (observer) return observer;
         const parent = getParentObserver();
         if (parent && !parent.$_formwardObserver) {
           parent.$_formwardObserver = createObserver();
@@ -165,12 +177,11 @@ export const ValidationProvider = {
       }, {});
     }
   },
-  render (h) {
+  render () {
     this.registerField();
     const ctx = createValidationCtx(this);
 
-    // Vue 3: $slots.default is a function for scoped slots; Vue 2: $scopedSlots.default
-    const slot = this.$slots.default || (this.$scopedSlots && this.$scopedSlots.default);
+    const slot = this.$slots.default;
     const slotFn = isCallable(slot) ? slot : null;
     /* istanbul ignore next */
     if (!slotFn) {
@@ -179,12 +190,11 @@ export const ValidationProvider = {
       }
 
       const defaultSlot = this.$slots.default;
-      const content = isCallable(defaultSlot) ? defaultSlot() : (defaultSlot || []);
+      const content = isCallable(defaultSlot) ? defaultSlot(ctx) : (defaultSlot || []);
       return h(this.tag, content);
     }
 
     const nodes = slotFn(ctx);
-    // Handle single-root slot.
     extractVNodes(Array.isArray(nodes) ? nodes : [nodes]).forEach(input => {
       addListeners.call(this, input);
     });
@@ -196,8 +206,57 @@ export const ValidationProvider = {
       this.fieldDeps.forEach(depName => watchCrossFieldDep(this, depName, false));
     }
   },
+  updated () {
+    this.$nextTick(() => {
+      if (!this.messages.length || !this.$el || this._formwardUnmounted) {
+        return;
+      }
+      const val = syncValueFromElement(this.$el);
+      if (val === undefined) {
+        return;
+      }
+      if (domValueMatchesModel(val, this.value)) {
+        return;
+      }
+      if (this._formwardCatchUpTimer != null) {
+        clearTimeout(this._formwardCatchUpTimer);
+      }
+      this._formwardCatchUpTimer = setTimeout(() => {
+        this._formwardCatchUpTimer = null;
+        if (this._formwardUnmounted || !this.$el) {
+          return;
+        }
+        const v = syncValueFromElement(this.$el);
+        if (v === undefined || domValueMatchesModel(v, this.value)) {
+          return;
+        }
+        this.value = v;
+        this.flags.changed = this.initialValue !== v;
+        this.validateSilent().then(result => {
+          if (this._formwardUnmounted) {
+            return;
+          }
+          this.applyResult(result);
+        });
+      }, 0);
+    });
+  },
   beforeUnmount () {
-    // cleanup reference.
+    this._formwardUnmounted = true;
+    if (this._formwardCatchUpTimer != null) {
+      clearTimeout(this._formwardCatchUpTimer);
+      this._formwardCatchUpTimer = null;
+    }
+    if (this._formwardWatchers) {
+      Object.keys(this._formwardWatchers).forEach(key => {
+        const unwatch = this._formwardWatchers[key];
+        if (isCallable(unwatch)) {
+          unwatch();
+        }
+      });
+      this._formwardWatchers = {};
+    }
+    this._pendingValidation = null;
     this.$_formwardObserver.unsubscribe(this);
   },
   activated () {
@@ -229,6 +288,12 @@ export const ValidationProvider = {
     validate (...args) {
       if (args.length > 0) {
         this.syncValue(args[0]);
+      } else if (this.$el) {
+        const val = syncValueFromElement(this.$el);
+        if (val !== undefined) {
+          this.value = val;
+          this.flags.changed = this.initialValue !== val;
+        }
       }
 
       return this.validateSilent().then(result => {
@@ -254,6 +319,12 @@ export const ValidationProvider = {
       });
     },
     applyResult ({ errors, failedRules }) {
+      if (this._formwardUnmounted) {
+        return;
+      }
+      if (isEqual(errors, this.messages) && isEqual(failedRules, this.failedRules)) {
+        return;
+      }
       this.messages = errors;
       this.failedRules = assign({}, failedRules);
       this.setFlags({
@@ -262,6 +333,7 @@ export const ValidationProvider = {
         invalid: !!errors.length,
         validated: true
       });
+      this.$_formwardObserver?.notifyUpdate?.();
     },
     registerField () {
       if (!$validator) {
@@ -297,27 +369,57 @@ function normalizeValue (value) {
   return value;
 }
 
-/**
- * Determines if a provider needs to run validation.
- */
+function getInputElement (el) {
+  if (!el) return null;
+  return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT'
+    ? el
+    : el.querySelector('input, textarea, select');
+}
+
+function syncValueFromElement (el) {
+  const input = getInputElement(el);
+  if (!input) return undefined;
+  if (input.type === 'checkbox' || input.type === 'radio') {
+    return input.checked;
+  }
+  if (input.type === 'file') {
+    return toArray(input.files);
+  }
+  return input.value;
+}
+
+function domValueMatchesModel (domVal, ctxVal) {
+  if (isEqual(domVal, ctxVal)) {
+    return true;
+  }
+  if (domVal != null && ctxVal != null && String(domVal) === String(ctxVal)) {
+    return true;
+  }
+  return false;
+}
+
 function shouldValidate (ctx, model) {
-  // when an immediate/initial validation is needed and wasn't done before.
   if (!ctx._ignoreImmediate && ctx.immediate) {
     return true;
   }
 
-  // when the value changes for whatever reason.
   if (ctx.value !== model.value) {
     return true;
   }
 
-  // when it needs validation due to props/cross-fields changes.
   if (ctx._needsValidation) {
     return true;
   }
 
-  // when the initial value is undefined and the field wasn't rendered yet.
   if (!ctx.initialized && model.value === undefined) {
+    return true;
+  }
+
+  if (
+    ctx.messages.length > 0 &&
+    ctx.flags.validated &&
+    ctx.value === model.value
+  ) {
     return true;
   }
 
@@ -348,56 +450,100 @@ export function onRenderUpdate (model) {
     return;
   }
 
-  this.validateSilent().then(this.immediate || this.flags.validated ? this.applyResult : x => x);
+  this.validateSilent().then(this.immediate || this.flags.validated ? result => {
+    if (!this._formwardUnmounted) {
+      this.applyResult(result);
+    }
+  } : x => x);
 }
 
-// Creates the common handlers for a validatable context.
 export function createCommonHandlers (ctx) {
-  const onInput = (e) => {
-    ctx.syncValue(e); // track and keep the value updated.
+  const onInput = (e: unknown) => {
+    ctx.syncValue(e);
     ctx.setFlags({ dirty: true, pristine: false });
+    ctx.$formwardHandler?.(e);
   };
 
-  // Blur event listener.
-  const onBlur = () => {
+  const onBlur = (e?: unknown) => {
     ctx.setFlags({ touched: true, untouched: false });
+    ctx.$formwardHandler?.(e);
   };
 
   let onValidate = ctx.$formwardHandler;
   const mode = computeModeSetting(ctx);
 
-  // Handle debounce changes.
   if (!onValidate || ctx.$formwardDebounce !== ctx.debounce) {
     onValidate = debounce(
-      () => {
-        ctx.$nextTick(() => {
+      (e?: unknown) => {
+        const runValidation = () => {
+          const target = e && typeof e === 'object' && (e as Event).target
+            ? (e as Event).target as HTMLInputElement
+            : null;
+          if (target && typeof target.value !== 'undefined') {
+            const val = target.type === 'checkbox' || target.type === 'radio'
+              ? target.checked
+              : target.type === 'file'
+                ? toArray(target.files)
+                : target.value;
+            ctx.value = val;
+            ctx.flags.changed = ctx.initialValue !== val;
+          } else if (ctx.$el) {
+            const val = syncValueFromElement(ctx.$el);
+            if (val !== undefined) {
+              ctx.value = val;
+              ctx.flags.changed = ctx.initialValue !== val;
+            }
+          }
           const pendingPromise = ctx.validateSilent();
-          // avoids race conditions between successive validations.
           ctx._pendingValidation = pendingPromise;
           pendingPromise.then(result => {
+            if (ctx._formwardUnmounted) {
+              return;
+            }
             if (pendingPromise === ctx._pendingValidation) {
               ctx.applyResult(result);
               ctx._pendingValidation = null;
             }
           });
-        });
+        };
+        if (e && typeof e === 'object' && (e as Event).target) {
+          runValidation();
+          ctx.$nextTick(() => {
+            if (ctx.$el) {
+              const val = syncValueFromElement(ctx.$el);
+              if (val !== undefined) {
+                ctx.value = val;
+                ctx.flags.changed = ctx.initialValue !== val;
+              }
+            }
+            const pending = ctx.validateSilent();
+            ctx._pendingValidation = pending;
+            pending.then(result => {
+              if (ctx._formwardUnmounted) {
+                return;
+              }
+              if (pending === ctx._pendingValidation) {
+                ctx.applyResult(result);
+                ctx._pendingValidation = null;
+              }
+            });
+          });
+        } else {
+          ctx.$nextTick(runValidation);
+        }
       },
-      mode.debounce || ctx.debounce
+      mode.debounce ?? ctx.debounce
     );
 
-    // Cache the handler so we don't create it each time.
     ctx.$formwardHandler = onValidate;
-    // cache the debounce value so we detect if it was changed.
     ctx.$formwardDebounce = ctx.debounce;
   }
 
   return { onInput, onBlur, onValidate };
 }
 
-// Adds all plugin listeners to the vnode.
 function addListeners (node) {
   const model = findModel(node);
-  // cache the input eventName.
   this._inputEventName = this._inputEventName || getInputEventName(node, model);
 
   onRenderUpdate.call(this, model);
@@ -406,7 +552,6 @@ function addListeners (node) {
   addVNodeListener(node, this._inputEventName, onInput);
   addVNodeListener(node, 'blur', onBlur);
 
-  // add the validation listeners.
   this.normalizedEvents.forEach(evt => {
     addVNodeListener(node, evt, onValidate);
   });
@@ -429,19 +574,16 @@ function createValuesLookup (ctx) {
 }
 
 function updateRenderingContextRefs (ctx) {
-  // IDs should not be nullable.
   if (isNullOrUndefined(ctx.id) && ctx.id === ctx.vid) {
     ctx.id = PROVIDER_COUNTER;
     PROVIDER_COUNTER++;
   }
 
   const { id, vid } = ctx;
-  // Nothing has changed.
   if (ctx.isDeactivated || (id === vid && ctx.$_formwardObserver.refs[id])) {
     return;
   }
 
-  // vid was changed.
   if (id !== vid && ctx.$_formwardObserver.refs[id] === ctx) {
     ctx.$_formwardObserver.unsubscribe({ vid: id });
   }

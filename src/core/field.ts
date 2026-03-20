@@ -425,7 +425,7 @@ export default class Field {
       if (isCallable((el as any).$watch)) {
         options.component = el;
         options.el = (el as any).$el;
-        const vnode = (el as any).$.vnode || (el as any)._vnode || {};
+        const vnode = (el as any).$.vnode || (el as any)._vnode || ({} as any);
         options.getter = Resolver.resolveGetter((el as any).$el, vnode, null, el, el) as () => any;
       } else {
         options.el = el as HTMLElement;
@@ -528,30 +528,14 @@ export default class Field {
       this.unwatch(/^class_input$/);
     };
 
-    if (this.componentInstance) {
-      if (isCallable(this.componentInstance.$watch) && this.getter) {
-        const unwatchInput = this.componentInstance.$watch(() => this.getter && this.getter(), onInput, { deep: true });
-        const unwatchBlur = () => {};
-        this.watchers.push({ tag: 'class_input', unwatch: () => unwatchInput && unwatchInput() });
-        this.watchers.push({ tag: 'class_blur', unwatch: unwatchBlur });
-      } else if (isCallable(this.componentInstance.$once)) {
-        this.componentInstance.$once('input', onInput);
-        this.componentInstance.$once('blur', onBlur);
-        this.watchers.push({
-          tag: 'class_input',
-          unwatch: () => {
-            if (this.componentInstance.$off) this.componentInstance.$off('input', onInput);
-          }
-        });
-        this.watchers.push({
-          tag: 'class_blur',
-          unwatch: () => {
-            if (this.componentInstance.$off) this.componentInstance.$off('blur', onBlur);
-          }
-        });
-      }
+    // Vue 3: only $watch exists; $on/$off/$once were removed
+    if (this.componentInstance && isCallable(this.componentInstance.$watch) && this.getter) {
+      const unwatchInput = this.componentInstance.$watch(() => this.getter && this.getter(), onInput, { deep: true });
+      this.watchers.push({ tag: 'class_input', unwatch: () => unwatchInput && unwatchInput() });
+      this.watchers.push({ tag: 'class_blur', unwatch: () => {} });
       return;
     }
+    if (this.componentInstance) return;
 
     if (!this.el) return;
 
@@ -595,9 +579,9 @@ export default class Field {
    * @internal
    */
   _determineInputEvent () {
-    // if its a custom component, use the customized model event or the input event.
     if (this.componentInstance) {
-      return (this.componentInstance.$options.model && this.componentInstance.$options.model.event) || 'input';
+      const model = this.componentInstance.$options?.model;
+      return (model && model.event) || 'input';
     }
 
     if (this.model && this.model.lazy) {
@@ -729,20 +713,12 @@ export default class Field {
    */
   _addComponentEventListener (evt, validate) {
     if (!this.componentInstance) return;
-
+    // Vue 3: only $watch; $on/$off were removed from component instance
     if (isCallable(this.componentInstance.$watch) && this.getter) {
       const unwatch = this.componentInstance.$watch(() => this.getter && this.getter(), validate, { deep: true });
       this.watchers.push({
         tag: 'input_vue',
         unwatch: () => unwatch && unwatch()
-      });
-    } else if (isCallable(this.componentInstance.$on)) {
-      this.componentInstance.$on(evt, validate);
-      this.watchers.push({
-        tag: 'input_vue',
-        unwatch: () => {
-          if (this.componentInstance.$off) this.componentInstance.$off(evt, validate);
-        }
       });
     }
   }
