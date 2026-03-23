@@ -415,14 +415,6 @@ function shouldValidate (ctx, model) {
     return true;
   }
 
-  if (
-    ctx.messages.length > 0 &&
-    ctx.flags.validated &&
-    ctx.value === model.value
-  ) {
-    return true;
-  }
-
   return false;
 }
 
@@ -506,31 +498,7 @@ export function createCommonHandlers (ctx) {
             }
           });
         };
-        if (e && typeof e === 'object' && (e as Event).target) {
-          runValidation();
-          ctx.$nextTick(() => {
-            if (ctx.$el) {
-              const val = syncValueFromElement(ctx.$el);
-              if (val !== undefined) {
-                ctx.value = val;
-                ctx.flags.changed = ctx.initialValue !== val;
-              }
-            }
-            const pending = ctx.validateSilent();
-            ctx._pendingValidation = pending;
-            pending.then(result => {
-              if (ctx._formwardUnmounted) {
-                return;
-              }
-              if (pending === ctx._pendingValidation) {
-                ctx.applyResult(result);
-                ctx._pendingValidation = null;
-              }
-            });
-          });
-        } else {
-          ctx.$nextTick(runValidation);
-        }
+        ctx.$nextTick(runValidation);
       },
       mode.debounce ?? ctx.debounce
     );

@@ -1,6 +1,6 @@
 {
   "name": "formward",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Vue 3 form validation — form guard with directive, schemas (Zod, Yup). Fork of vee-validate 2.x.",
   "author": "Abdelrahman Awad <logaretm1@gmail.com>",
   "license": "MIT",
@@ -40,7 +40,8 @@
     "build:umd": "cross-env VITE_BUILD_TARGET=umd vite build && cross-env VITE_BUILD_TARGET=umd-minimal vite build",
     "build:esm": "cross-env VITE_BUILD_TARGET=esm vite build && cross-env VITE_BUILD_TARGET=esm-minimal vite build && cross-env VITE_BUILD_TARGET=esm-rules vite build && cross-env VITE_BUILD_TARGET=esm-schema vite build",
     "build": "npm run build:umd && npm run build:esm",
-    "cover": "vitest run --coverage"
+    "cover": "vitest run --coverage",
+    "test:e2e": "npm run test:e2e --prefix test-app"
   },
   "keywords": [
     "vue",
@@ -61,8 +62,8 @@
   ],
   "peerDependencies": {
     "vue": "^3.0.0",
-    "zod": ">=3.0.0",
-    "yup": ">=0.32.0"
+    "yup": ">=0.32.0",
+    "zod": ">=3.0.0"
   },
   "peerDependenciesMeta": {
     "zod": {
@@ -73,7 +74,6 @@
     }
   },
   "devDependencies": {
-    "zod": "^3.23.0",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vitest/coverage-v8": "^2.1.0",
     "@vue/test-utils": "^2.4.6",
@@ -100,7 +100,8 @@
     "vite-plugin-flow": "^0.2.1",
     "vitest": "^2.1.0",
     "vue": "^3.4.0",
-    "vue-i18n": "^9.0.0"
+    "vue-i18n": "^9.0.0",
+    "zod": "^3.23.0"
   },
   "eslintIgnore": [
     "locale",
